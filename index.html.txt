@@ -1,0 +1,473 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diagramme radial interactif</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #1d2433;
+      --muted: #667085;
+      --border: #d7dce5;
+      --accent: #2563eb;
+    }
+
+
+    * { box-sizing: border-box; }
+
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+
+    .app {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+
+
+    .sidebar {
+      padding: 20px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+    }
+
+
+    .sidebar h1 {
+      font-size: 20px;
+      margin: 0 0 8px;
+    }
+
+
+    .sidebar p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+
+    .group {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      background: #fff;
+    }
+
+
+    .group h2 {
+      font-size: 15px;
+      margin: 0 0 12px;
+    }
+
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+
+    input[type="color"] {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      background: white;
+      cursor: pointer;
+    }
+
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+
+    button {
+      border: 0;
+      background: var(--accent);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+
+    button.secondary {
+      background: #e7ecf5;
+      color: #1d2433;
+    }
+
+
+    .canvas {
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      overflow: auto;
+    }
+
+
+    .card {
+      width: min(92vw, 920px);
+      aspect-ratio: 1 / 1;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(16, 24, 40, 0.08);
+      display: grid;
+      place-items: center;
+      padding: 12px;
+    }
+
+
+    svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+
+    .footer-note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+
+    @media (max-width: 920px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .card {
+        width: min(96vw, 720px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>Diagramme radial interactif</h1>
+      <p>Modifie la couleur de l’anneau extérieur et la position des 5 secteurs intérieurs avec les curseurs.</p>
+
+
+      <div class="group">
+        <h2>Réglages globaux</h2>
+        <div class="field">
+          <label for="outerColor">
+            <span>Couleur du cercle extérieur</span>
+          </label>
+          <input type="color" id="outerColor" value="#1f77d4">
+        </div>
+      </div>
+
+
+      <div class="group">
+        <h2>5 secteurs</h2>
+
+
+        <div class="field">
+          <label for="v1"><span>Secteur 1</span><span id="v1Label">3</span></label>
+          <input type="range" id="v1" min="1" max="5" step="1" value="3">
+        </div>
+
+
+        <div class="field">
+          <label for="v2"><span>Secteur 2</span><span id="v2Label">3</span></label>
+          <input type="range" id="v2" min="1" max="5" step="1" value="3">
+        </div>
+
+
+        <div class="field">
+          <label for="v3"><span>Secteur 3</span><span id="v3Label">3</span></label>
+          <input type="range" id="v3" min="1" max="5" step="1" value="3">
+        </div>
+
+
+        <div class="field">
+          <label for="v4"><span>Secteur 4</span><span id="v4Label">3</span></label>
+          <input type="range" id="v4" min="1" max="5" step="1" value="3">
+        </div>
+
+
+        <div class="field">
+          <label for="v5"><span>Secteur 5</span><span id="v5Label">3</span></label>
+          <input type="range" id="v5" min="1" max="5" step="1" value="3">
+        </div>
+      </div>
+
+
+      <div class="group">
+        <h2>Export</h2>
+        <div class="buttons">
+          <button id="downloadSvg">Télécharger SVG</button>
+          <button class="secondary" id="copyConfig">Copier la config</button>
+        </div>
+        <div class="footer-note">
+          Le SVG est idéal pour garder une qualité parfaite. Le PNG peut être ajouté ensuite si tu veux un export bitmap.
+        </div>
+      </div>
+    </aside>
+
+
+    <main class="canvas">
+      <div class="card">
+        <svg id="diagram" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" aria-label="Diagramme radial">
+          <defs>
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.12"/>
+            </filter>
+          </defs>
+          <rect width="800" height="800" fill="#ffffff"/>
+          <g id="diagramGroup"></g>
+        </svg>
+      </div>
+    </main>
+  </div>
+
+
+  <script>
+    const svg = document.getElementById('diagram');
+    const group = document.getElementById('diagramGroup');
+    const outerColorInput = document.getElementById('outerColor');
+
+
+    const sliders = [1, 2, 3, 4, 5].map(i => document.getElementById(`v${i}`));
+    const labels = [1, 2, 3, 4, 5].map(i => document.getElementById(`v${i}Label`));
+
+
+    const outerRadius = 360;
+    const ringThickness = 90;
+    const innerHole = 80;
+    const innerMin = 135;
+    const innerMax = 255;
+
+
+    const sectorColors = ['#ff5ca8', '#e66bd6', '#8a63f6', '#41c46a', '#2ec4c7'];
+    const sectorNames = ['A', 'B', 'C', 'D', 'E'];
+
+
+    function polar(cx, cy, r, angle) {
+      return {
+        x: cx + r * Math.cos(angle),
+        y: cy + r * Math.sin(angle)
+      };
+    }
+
+
+    function ringSectorPath(cx, cy, r1, r2, a0, a1) {
+      const p1 = polar(cx, cy, r2, a0);
+      const p2 = polar(cx, cy, r2, a1);
+      const p3 = polar(cx, cy, r1, a1);
+      const p4 = polar(cx, cy, r1, a0);
+      const largeArc = (a1 - a0) > Math.PI ? 1 : 0;
+      return [
+        `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`,
+        `A ${r2} ${r2} 0 ${largeArc} 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`,
+        `L ${p3.x.toFixed(2)} ${p3.y.toFixed(2)}`,
+        `A ${r1} ${r1} 0 ${largeArc} 0 ${p4.x.toFixed(2)} ${p4.y.toFixed(2)}`,
+        'Z'
+      ].join(' ');
+    }
+
+
+    function textAlongArc(cx, cy, r, a0, a1, text, size, color, weight = 500) {
+      const mid = (a0 + a1) / 2;
+      const pos = polar(cx, cy, r, mid);
+      const rotate = (mid * 180 / Math.PI) + 90;
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('x', pos.x);
+      t.setAttribute('y', pos.y);
+      t.setAttribute('fill', color);
+      t.setAttribute('font-size', size);
+      t.setAttribute('font-weight', weight);
+      t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('dominant-baseline', 'middle');
+      t.setAttribute('transform', `rotate(${rotate} ${pos.x} ${pos.y})`);
+      t.textContent = text;
+      return t;
+    }
+
+
+    function add(el, attrs = {}, parent = group) {
+      const node = document.createElementNS('http://www.w3.org/2000/svg', el);
+      for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+      parent.appendChild(node);
+      return node;
+    }
+
+
+    function valueToRadius(v) {
+      const t = (v - 1) / 4;
+      return innerMin + t * (innerMax - innerMin);
+    }
+
+
+    function render() {
+      group.innerHTML = '';
+      const cx = 400, cy = 400;
+      const outerColor = outerColorInput.value;
+      const values = sliders.map(s => Number(s.value));
+
+
+      sliders.forEach((s, i) => labels[i].textContent = s.value);
+
+
+      add('circle', { cx, cy, r: outerRadius, fill: outerColor, filter: 'url(#shadow)' });
+
+
+      const gap = 0.012;
+      const step = (Math.PI * 2) / 5;
+
+
+      for (let i = 0; i < 5; i++) {
+        const a0 = -Math.PI / 2 + i * step + gap;
+        const a1 = -Math.PI / 2 + (i + 1) * step - gap;
+        const r2 = valueToRadius(values[i]);
+        const r1 = innerHole;
+
+
+        const path = add('path', {
+          d: ringSectorPath(cx, cy, r1, r2, a0, a1),
+          fill: sectorColors[i],
+          stroke: '#ffffff',
+          'stroke-width': 3
+        });
+
+
+        const mid = (a0 + a1) / 2;
+        const txtPos = polar(cx, cy, (r1 + r2) / 2, mid);
+
+
+        add('text', {
+          x: txtPos.x,
+          y: txtPos.y,
+          fill: '#ffffff',
+          'font-size': 28,
+          'font-weight': 700,
+          'text-anchor': 'middle',
+          'dominant-baseline': 'middle',
+          transform: `rotate(${mid * 180 / Math.PI + 90} ${txtPos.x} ${txtPos.y})`,
+          'paint-order': 'stroke',
+          'stroke': 'rgba(0,0,0,0.12)',
+          'stroke-width': 2
+        }).textContent = sectorNames[i];
+      }
+
+
+      add('circle', {
+        cx, cy, r: 120,
+        fill: '#fff2b3',
+        stroke: '#f2d56b',
+        'stroke-width': 2
+      });
+
+
+      add('text', {
+        x: cx, y: cy - 10,
+        fill: '#8e6a4a',
+        'font-size': 34,
+        'font-weight': 800,
+        'text-anchor': 'middle'
+      }).textContent = 'PATIENT';
+
+
+      add('text', {
+        x: cx, y: cy + 26,
+        fill: '#8e6a4a',
+        'font-size': 18,
+        'font-weight': 600,
+        'text-anchor': 'middle'
+      }).textContent = 'Centre';
+
+
+      add('circle', {
+        cx, cy, r: outerRadius,
+        fill: 'none',
+        stroke: '#ffffff',
+        'stroke-width': 6
+      });
+
+
+      const labelsOuter = [
+        { text: 'Identité professionnelle', a0: -Math.PI * 0.90, a1: -Math.PI * 0.55 },
+        { text: 'Auto-réflexive', a0: -Math.PI * 0.05, a1: Math.PI * 0.30 },
+        { text: 'Identité personnelle', a0: Math.PI * 0.72, a1: Math.PI * 1.05 },
+        { text: 'Praticien', a0: Math.PI * 0.38, a1: Math.PI * 0.55 }
+      ];
+
+
+      labelsOuter.forEach(item => {
+        const t = textAlongArc(cx, cy, 320, item.a0, item.a1, item.text, 24, '#ffffff', 500);
+        group.appendChild(t);
+      });
+    }
+
+
+    function downloadSVG() {
+      const clone = svg.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(clone);
+      const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'diagramme-radial.svg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+
+    function copyConfig() {
+      const config = {
+        outerColor: outerColorInput.value,
+        values: sliders.map(s => Number(s.value))
+      };
+      navigator.clipboard.writeText(JSON.stringify(config, null, 2));
+      alert('Configuration copiée dans le presse-papiers.');
+    }
+
+
+    sliders.forEach(s => s.addEventListener('input', render));
+    outerColorInput.addEventListener('input', render);
+    document.getElementById('downloadSvg').addEventListener('click', downloadSVG);
+    document.getElementById('copyConfig').addEventListener('click', copyConfig);
+
+
+    render();
+  </script>
+</body>
+</html>
